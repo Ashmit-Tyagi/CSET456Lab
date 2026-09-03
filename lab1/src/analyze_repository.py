@@ -7,96 +7,131 @@ from pydriller import Repository
 
 REPO_PATH = r"C:\Users\ashmi\Desktop\Special Topics Devops\flask"
 
-BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-LAB_DIR = os.path.dirname(BASE_DIR)
 
-DATA_DIR = os.path.join(LAB_DIR, "data")
-OUTPUT_DIR = os.path.join(LAB_DIR, "output")
+class RepositoryAnalyzer:
 
-os.makedirs(DATA_DIR, exist_ok=True)
-os.makedirs(OUTPUT_DIR, exist_ok=True)
+    LANGUAGES = {
+        ".py": "Python",
+        ".js": "JavaScript",
+        ".ts": "TypeScript",
+        ".java": "Java",
+        ".cpp": "C++",
+        ".c": "C",
+        ".h": "C/C++ Header",
+        ".hpp": "C++ Header",
+        ".go": "Go",
+        ".rs": "Rust",
+        ".rb": "Ruby",
+        ".php": "PHP",
+        ".html": "HTML",
+        ".css": "CSS",
+        ".sh": "Shell",
+    }
 
+    def __init__(self, repo_path):
 
-LANGUAGES = {
-    ".py": "Python",
-    ".js": "JavaScript",
-    ".ts": "TypeScript",
-    ".java": "Java",
-    ".cpp": "C++",
-    ".c": "C",
-    ".h": "C/C++ Header",
-    ".hpp": "C++ Header",
-    ".go": "Go",
-    ".rs": "Rust",
-    ".rb": "Ruby",
-    ".php": "PHP",
-    ".html": "HTML",
-    ".css": "CSS",
-    ".sh": "Shell",
-}
+        self.repo_path = repo_path
 
+        self.base_dir = os.path.dirname(
+            os.path.abspath(__file__)
+        )
 
-def get_language(extension):
-    return LANGUAGES.get(extension.lower(), "Other")
+        self.lab_dir = os.path.dirname(self.base_dir)
 
+        self.data_dir = os.path.join(
+            self.lab_dir,
+            "data"
+        )
 
-# ==============================
-# TASK 1: REPOSITORY INVENTORY
-# ==============================
+        self.output_dir = os.path.join(
+            self.lab_dir,
+            "output"
+        )
 
-total_files = 0
-total_directories = 0
-source_files = 0
-total_loc = 0
+        os.makedirs(self.data_dir, exist_ok=True)
+        os.makedirs(self.output_dir, exist_ok=True)
 
-file_types = Counter()
-languages = Counter()
-file_metrics = []
-largest_files = []
+        # Repository metrics
+        self.total_files = 0
+        self.total_directories = 0
+        self.source_files = 0
+        self.total_loc = 0
 
+        self.file_types = Counter()
+        self.languages = Counter()
+        self.file_metrics = []
+        self.largest_files = []
 
-for root, dirs, files in os.walk(REPO_PATH):
+        # Git metrics
+        self.total_commits = 0
+        self.contributors = Counter()
+        self.changed_files = Counter()
 
-    dirs[:] = [d for d in dirs if d != ".git"]
+        self.commits_per_month = Counter()
+        self.files_per_month = defaultdict(int)
+        self.additions_per_month = defaultdict(int)
+        self.deletions_per_month = defaultdict(int)
 
-    total_directories += len(dirs)
+        self.total_additions = 0
+        self.total_deletions = 0
+        self.total_files_changed = 0
 
-    for filename in files:
+    # ---------------------------------
+    # SOURCE CODE ANALYSIS
+    # ---------------------------------
 
-        total_files += 1
+    def get_language(self, extension):
+        return self.LANGUAGES.get(
+            extension.lower(),
+            "Other"
+        )
 
-        extension = os.path.splitext(filename)[1].lower()
+    def count_loc(self, file_path):
+
+        with open(
+            file_path,
+            "r",
+            encoding="utf-8",
+            errors="ignore"
+        ) as file:
+
+            return sum(
+                1 for line in file
+                if line.strip()
+            )
+
+    def analyze_file(self, root, filename):
+
+        extension = os.path.splitext(
+            filename
+        )[1].lower()
 
         if extension:
-            file_types[extension] += 1
+            self.file_types[extension] += 1
         else:
-            file_types["[no extension]"] += 1
+            self.file_types["[no extension]"] += 1
 
-        if extension not in LANGUAGES:
-            continue
+        if extension not in self.LANGUAGES:
+            return
 
-        source_files += 1
-
-        language = get_language(extension)
-        file_path = os.path.join(root, filename)
+        file_path = os.path.join(
+            root,
+            filename
+        )
 
         try:
-            size = os.path.getsize(file_path)
 
-            with open(
-                file_path,
-                "r",
-                encoding="utf-8",
-                errors="ignore"
-            ) as f:
-                loc = sum(1 for line in f if line.strip())
+            size = os.path.getsize(file_path)
+            loc = self.count_loc(file_path)
 
             relative_path = os.path.relpath(
                 file_path,
-                REPO_PATH
+                self.repo_path
             ).replace("\\", "/")
 
-            file_metrics.append([
+            language = self.get_language(extension)
+
+            self.file_metrics.append([
                 relative_path,
                 language,
                 extension,
@@ -104,269 +139,506 @@ for root, dirs, files in os.walk(REPO_PATH):
                 size
             ])
 
-            languages[language] += 1
-            total_loc += loc
+            self.languages[language] += 1
+            self.source_files += 1
+            self.total_loc += loc
 
-            largest_files.append({
+            self.largest_files.append({
                 "file": relative_path,
                 "loc": loc
             })
 
-        except Exception as e:
+        except Exception:
             print("Could not read:", file_path)
 
+    def scan_repository(self):
 
-largest_files = sorted(
-    largest_files,
-    key=lambda x: x["loc"],
-    reverse=True
-)[:5]
+        print("Scanning repository...")
 
+        for root, dirs, files in os.walk(
+            self.repo_path
+        ):
 
-# ==============================
-# CREATE FILE METRICS CSV
-# ==============================
+            dirs[:] = [
+                d for d in dirs
+                if d != ".git"
+            ]
 
-file_csv = os.path.join(DATA_DIR, "file_metrics.csv")
+            self.total_directories += len(dirs)
 
-with open(file_csv, "w", newline="", encoding="utf-8") as f:
+            for filename in files:
 
-    writer = csv.writer(f)
+                self.total_files += 1
 
-    writer.writerow([
-        "file_path",
-        "language",
-        "extension",
-        "loc",
-        "size_bytes"
-    ])
+                self.analyze_file(
+                    root,
+                    filename
+                )
 
-    writer.writerows(file_metrics)
+        self.largest_files = sorted(
+            self.largest_files,
+            key=lambda x: x["loc"],
+            reverse=True
+        )[:5]
 
+    # ---------------------------------
+    # CSV OUTPUT
+    # ---------------------------------
 
-# ==============================
-# TASK 3: MINE GIT HISTORY
-# ==============================
+    def create_file_metrics_csv(self):
 
-total_commits = 0
-
-contributors = Counter()
-changed_files = Counter()
-
-commits_per_month = Counter()
-files_per_month = defaultdict(int)
-additions_per_month = defaultdict(int)
-deletions_per_month = defaultdict(int)
-
-total_additions = 0
-total_deletions = 0
-total_files_changed = 0
-
-
-print("Mining Git history... Please wait.")
-
-
-for commit in Repository(REPO_PATH).traverse_commits():
-
-    total_commits += 1
-
-    author = commit.author.name
-    contributors[author] += 1
-
-    month = commit.author_date.strftime("%Y-%m")
-
-    commits_per_month[month] += 1
-
-    for modification in commit.modified_files:
-
-        filename = modification.new_path or modification.old_path
-
-        if filename:
-            changed_files[filename] += 1
-            files_per_month[month] += 1
-            total_files_changed += 1
-
-        total_additions += modification.added_lines
-        total_deletions += modification.deleted_lines
-
-        additions_per_month[month] += modification.added_lines
-        deletions_per_month[month] += modification.deleted_lines
-
-
-# ==============================
-# CALCULATE GIT STATISTICS
-# ==============================
-
-most_active_contributor = (
-    contributors.most_common(1)[0]
-    if contributors
-    else ("None", 0)
-)
-
-most_changed_files = changed_files.most_common(5)
-
-average_files_changed_per_commit = (
-    total_files_changed / total_commits
-    if total_commits else 0
-)
-
-average_additions_per_commit = (
-    total_additions / total_commits
-    if total_commits else 0
-)
-
-average_deletions_per_commit = (
-    total_deletions / total_commits
-    if total_commits else 0
-)
-
-
-# ==============================
-# CREATE MONTHLY GIT CSV
-# ==============================
-
-monthly_csv = os.path.join(
-    DATA_DIR,
-    "monthly_git_metrics.csv"
-)
-
-with open(monthly_csv, "w", newline="", encoding="utf-8") as f:
-
-    writer = csv.writer(f)
-
-    writer.writerow([
-        "month",
-        "commits",
-        "total_files_changed",
-        "average_files_changed",
-        "additions",
-        "deletions"
-    ])
-
-    for month in sorted(commits_per_month):
-
-        commits = commits_per_month[month]
-        files = files_per_month[month]
-
-        average_files = files / commits if commits else 0
-
-        writer.writerow([
-            month,
-            commits,
-            files,
-            round(average_files, 2),
-            additions_per_month[month],
-            deletions_per_month[month]
-        ])
-
-
-# ==============================
-# CREATE FINAL JSON
-# ==============================
-
-statistics = {
-    "repository_name": os.path.basename(REPO_PATH),
-
-    "repository_inventory": {
-        "total_files": total_files,
-        "source_code_files": source_files,
-        "directories": total_directories,
-        "total_loc": total_loc,
-        "languages": dict(languages),
-        "file_type_distribution": dict(file_types),
-        "largest_source_files": largest_files
-    },
-
-    "git_history": {
-        "total_commits": total_commits,
-        "number_of_contributors": len(contributors),
-
-        "most_active_contributor": {
-            "name": most_active_contributor[0],
-            "commits": most_active_contributor[1]
-        },
-
-        "most_frequently_changed_files": [
-            {
-                "file": file,
-                "changes": count
-            }
-            for file, count in most_changed_files
-        ],
-
-        "commits_per_month": dict(
-            sorted(commits_per_month.items())
-        ),
-
-        "average_files_changed_per_commit": round(
-            average_files_changed_per_commit, 2
-        ),
-
-        "average_additions_per_commit": round(
-            average_additions_per_commit, 2
-        ),
-
-        "average_deletions_per_commit": round(
-            average_deletions_per_commit, 2
+        file_path = os.path.join(
+            self.data_dir,
+            "file_metrics.csv"
         )
-    }
-}
+
+        with open(
+            file_path,
+            "w",
+            newline="",
+            encoding="utf-8"
+        ) as file:
+
+            writer = csv.writer(file)
+
+            writer.writerow([
+                "file_path",
+                "language",
+                "extension",
+                "loc",
+                "size_bytes"
+            ])
+
+            writer.writerows(
+                self.file_metrics
+            )
+
+        print("Created:", file_path)
+
+    # ---------------------------------
+    # GIT HISTORY ANALYSIS
+    # ---------------------------------
+
+    def mine_git_history(self):
+
+        print("Mining Git history... Please wait.")
+
+        for commit in Repository(
+            self.repo_path
+        ).traverse_commits():
+
+            self.total_commits += 1
+
+            author = commit.author.name
+
+            self.contributors[author] += 1
+
+            month = commit.author_date.strftime(
+                "%Y-%m"
+            )
+
+            self.commits_per_month[month] += 1
+
+            for modification in commit.modified_files:
+
+                filename = (
+                    modification.new_path
+                    or modification.old_path
+                )
+
+                if filename:
+
+                    self.changed_files[
+                        filename
+                    ] += 1
+
+                    self.files_per_month[
+                        month
+                    ] += 1
+
+                    self.total_files_changed += 1
+
+                self.total_additions += (
+                    modification.added_lines
+                )
+
+                self.total_deletions += (
+                    modification.deleted_lines
+                )
+
+                self.additions_per_month[
+                    month
+                ] += modification.added_lines
+
+                self.deletions_per_month[
+                    month
+                ] += modification.deleted_lines
+
+    # ---------------------------------
+    # GIT STATISTICS
+    # ---------------------------------
+
+    def calculate_git_statistics(self):
+
+        most_active = (
+            self.contributors.most_common(1)[0]
+            if self.contributors
+            else ("None", 0)
+        )
+
+        most_changed = (
+            self.changed_files.most_common(5)
+        )
+
+        average_files = (
+            self.total_files_changed
+            / self.total_commits
+            if self.total_commits
+            else 0
+        )
+
+        average_additions = (
+            self.total_additions
+            / self.total_commits
+            if self.total_commits
+            else 0
+        )
+
+        average_deletions = (
+            self.total_deletions
+            / self.total_commits
+            if self.total_commits
+            else 0
+        )
+
+        return {
+            "most_active_contributor": most_active,
+            "most_changed_files": most_changed,
+            "average_files_changed": average_files,
+            "average_additions": average_additions,
+            "average_deletions": average_deletions
+        }
+
+    # ---------------------------------
+    # MONTHLY CSV
+    # ---------------------------------
+
+    def create_monthly_csv(self):
+
+        file_path = os.path.join(
+            self.data_dir,
+            "monthly_git_metrics.csv"
+        )
+
+        with open(
+            file_path,
+            "w",
+            newline="",
+            encoding="utf-8"
+        ) as file:
+
+            writer = csv.writer(file)
+
+            writer.writerow([
+                "month",
+                "commits",
+                "total_files_changed",
+                "average_files_changed",
+                "additions",
+                "deletions"
+            ])
+
+            for month in sorted(
+                self.commits_per_month
+            ):
+
+                commits = (
+                    self.commits_per_month[month]
+                )
+
+                files = (
+                    self.files_per_month[month]
+                )
+
+                average_files = (
+                    files / commits
+                    if commits
+                    else 0
+                )
+
+                writer.writerow([
+                    month,
+                    commits,
+                    files,
+                    round(
+                        average_files,
+                        2
+                    ),
+                    self.additions_per_month[
+                        month
+                    ],
+                    self.deletions_per_month[
+                        month
+                    ]
+                ])
+
+        print("Created:", file_path)
+
+    # ---------------------------------
+    # JSON OUTPUT
+    # ---------------------------------
+
+    def create_json(self):
+
+        git_stats = (
+            self.calculate_git_statistics()
+        )
+
+        statistics = {
+
+            "repository_name":
+                os.path.basename(
+                    self.repo_path
+                ),
+
+            "repository_inventory": {
+
+                "total_files":
+                    self.total_files,
+
+                "source_code_files":
+                    self.source_files,
+
+                "directories":
+                    self.total_directories,
+
+                "total_loc":
+                    self.total_loc,
+
+                "languages":
+                    dict(self.languages),
+
+                "file_type_distribution":
+                    dict(self.file_types),
+
+                "largest_source_files":
+                    self.largest_files
+            },
+
+            "git_history": {
+
+                "total_commits":
+                    self.total_commits,
+
+                "number_of_contributors":
+                    len(self.contributors),
+
+                "most_active_contributor": {
+
+                    "name":
+                        git_stats[
+                            "most_active_contributor"
+                        ][0],
+
+                    "commits":
+                        git_stats[
+                            "most_active_contributor"
+                        ][1]
+                },
+
+                "most_frequently_changed_files": [
+
+                    {
+                        "file": file,
+                        "changes": count
+                    }
+
+                    for file, count
+                    in git_stats[
+                        "most_changed_files"
+                    ]
+                ],
+
+                "commits_per_month":
+                    dict(
+                        sorted(
+                            self.commits_per_month.items()
+                        )
+                    ),
+
+                "average_files_changed_per_commit":
+                    round(
+                        git_stats[
+                            "average_files_changed"
+                        ],
+                        2
+                    ),
+
+                "average_additions_per_commit":
+                    round(
+                        git_stats[
+                            "average_additions"
+                        ],
+                        2
+                    ),
+
+                "average_deletions_per_commit":
+                    round(
+                        git_stats[
+                            "average_deletions"
+                        ],
+                        2
+                    )
+            }
+        }
+
+        file_path = os.path.join(
+            self.output_dir,
+            "repository_statistics.json"
+        )
+
+        with open(
+            file_path,
+            "w",
+            encoding="utf-8"
+        ) as file:
+
+            json.dump(
+                statistics,
+                file,
+                indent=4
+            )
+
+        print("Created:", file_path)
+
+    # ---------------------------------
+    # SUMMARY
+    # ---------------------------------
+
+    def print_summary(self):
+
+        git_stats = (
+            self.calculate_git_statistics()
+        )
+
+        print("\n===== REPOSITORY INVENTORY =====")
+
+        print(
+            "Repository:",
+            os.path.basename(
+                self.repo_path
+            )
+        )
+
+        print(
+            "Total files:",
+            self.total_files
+        )
+
+        print(
+            "Source files:",
+            self.source_files
+        )
+
+        print(
+            "Directories:",
+            self.total_directories
+        )
+
+        print(
+            "Total LOC:",
+            self.total_loc
+        )
+
+        print("\nLanguages:")
+
+        for language, count in (
+            self.languages.items()
+        ):
+
+            print(
+                language,
+                ":",
+                count
+            )
+
+        print("\n===== GIT HISTORY =====")
+
+        print(
+            "Total commits:",
+            self.total_commits
+        )
+
+        print(
+            "Contributors:",
+            len(self.contributors)
+        )
+
+        print(
+            "Most active contributor:",
+            git_stats[
+                "most_active_contributor"
+            ][0],
+            f"({git_stats['most_active_contributor'][1]} commits)"
+        )
+
+        print(
+            "\nAverage files changed per commit:",
+            round(
+                git_stats[
+                    "average_files_changed"
+                ],
+                2
+            )
+        )
+
+        print(
+            "Average additions per commit:",
+            round(
+                git_stats[
+                    "average_additions"
+                ],
+                2
+            )
+        )
+
+        print(
+            "Average deletions per commit:",
+            round(
+                git_stats[
+                    "average_deletions"
+                ],
+                2
+            )
+        )
+
+    # ---------------------------------
+    # RUN EVERYTHING
+    # ---------------------------------
+
+    def run(self):
+
+        self.scan_repository()
+
+        self.create_file_metrics_csv()
+
+        self.mine_git_history()
+
+        self.create_monthly_csv()
+
+        self.create_json()
+
+        self.print_summary()
 
 
-json_file = os.path.join(
-    OUTPUT_DIR,
-    "repository_statistics.json"
-)
+def main():
 
-with open(json_file, "w", encoding="utf-8") as f:
-    json.dump(statistics, f, indent=4)
+    analyzer = RepositoryAnalyzer(
+        REPO_PATH
+    )
+
+    analyzer.run()
 
 
-# ==============================
-# PRINT SUMMARY
-# ==============================
-
-print("\n===== REPOSITORY INVENTORY =====")
-print("Repository:", statistics["repository_name"])
-print("Total files:", total_files)
-print("Source files:", source_files)
-print("Directories:", total_directories)
-print("Total LOC:", total_loc)
-
-print("\nLanguages:")
-for language, count in languages.items():
-    print(language, ":", count)
-
-print("\n===== GIT HISTORY =====")
-print("Total commits:", total_commits)
-print("Contributors:", len(contributors))
-
-print(
-    "Most active contributor:",
-    most_active_contributor[0],
-    f"({most_active_contributor[1]} commits)"
-)
-
-print("\nTop 5 most frequently changed files:")
-for file, count in most_changed_files:
-    print(file, ":", count)
-
-print(
-    "\nAverage files changed per commit:",
-    round(average_files_changed_per_commit, 2)
-)
-
-print(
-    "Average additions per commit:",
-    round(average_additions_per_commit, 2)
-)
-
-print(
-    "Average deletions per commit:",
-    round(average_deletions_per_commit, 2)
-)
-
-print("\n===== GENERATED FILES =====")
-print(file_csv)
-print(monthly_csv)
-print(json_file)
+if __name__ == "__main__":
+    main()
