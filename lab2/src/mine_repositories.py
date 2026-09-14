@@ -1,8 +1,7 @@
 import os
 import csv
-import json
+import subprocess
 from collections import Counter
-from pydriller import Repository
 
 
 class RepositoryMiner:
@@ -68,7 +67,6 @@ class RepositoryMiner:
                         continue
 
                     file_path = os.path.join(root, file)
-
                     loc = self.count_loc(file_path)
 
                     try:
@@ -129,10 +127,169 @@ class RepositoryMiner:
         for language, count in languages.items():
             print(language, ":", count)
 
+    def mine_commit_history(self):
+        print("\n===== COMMIT HISTORY MINING =====")
+
+        for repo_name, repo_path in self.repositories.items():
+
+            print(f"Analyzing commits: {repo_name}")
+
+            command = [
+                "git",
+                "-C",
+                repo_path,
+                "log",
+                "--numstat",
+                "--pretty=format:COMMIT|%H|%an|%aI"
+            ]
+
+            try:
+                result = subprocess.run(
+                    command,
+                    capture_output=True,
+                    text=True,
+                    encoding="utf-8",
+                    errors="replace"
+                )
+
+                lines = result.stdout.splitlines()
+
+                commit_hash = ""
+                author = ""
+                date = ""
+                files_changed = 0
+                additions = 0
+                deletions = 0
+                commit_count = 0
+
+                for line in lines:
+
+                    if line.startswith("COMMIT|"):
+
+                        if commit_hash:
+                            self.commit_data.append({
+                                "repository": repo_name,
+                                "commit_hash": commit_hash,
+                                "author": author,
+                                "date": date,
+                                "files_changed": files_changed,
+                                "additions": additions,
+                                "deletions": deletions
+                            })
+
+                        parts = line.split("|")
+
+                        commit_hash = parts[1]
+                        author = parts[2]
+                        date = parts[3][:10]
+
+                        files_changed = 0
+                        additions = 0
+                        deletions = 0
+
+                        commit_count += 1
+
+                        if commit_count % 500 == 0:
+                            print(f"  Processed {commit_count} commits...")
+
+                    else:
+
+                        parts = line.split("\t")
+
+                        if len(parts) >= 3:
+
+                            added = parts[0]
+                            deleted = parts[1]
+
+                            if added.isdigit():
+                                additions += int(added)
+
+                            if deleted.isdigit():
+                                deletions += int(deleted)
+
+                            files_changed += 1
+
+                if commit_hash:
+                    self.commit_data.append({
+                        "repository": repo_name,
+                        "commit_hash": commit_hash,
+                        "author": author,
+                        "date": date,
+                        "files_changed": files_changed,
+                        "additions": additions,
+                        "deletions": deletions
+                    })
+
+                print(f"Completed commits: {repo_name} ({commit_count})")
+
+            except Exception as e:
+                print(f"Error while processing {repo_name}: {e}")
+
+    def save_commit_dataset(self):
+        output_file = r"C:\Users\ashmi\Desktop\Special Topics Devops\CSET456Lab\lab2\data\commit_history_dataset.csv"
+
+        fields = [
+            "repository",
+            "commit_hash",
+            "author",
+            "date",
+            "files_changed",
+            "additions",
+            "deletions"
+        ]
+
+        with open(output_file, "w", newline="", encoding="utf-8") as file:
+            writer = csv.DictWriter(file, fieldnames=fields)
+
+            writer.writeheader()
+            writer.writerows(self.commit_data)
+
+        print("\nCommit history dataset saved to:")
+        print(output_file)
+
+    def commit_statistics(self):
+        repositories = Counter()
+        authors = Counter()
+
+        total_additions = 0
+        total_deletions = 0
+
+        for row in self.commit_data:
+
+            repositories[row["repository"]] += 1
+            authors[row["author"]] += 1
+
+            total_additions += row["additions"]
+            total_deletions += row["deletions"]
+
+        print("\n===== COMMIT HISTORY STATISTICS =====")
+
+        print("Total commits:", len(self.commit_data))
+
+        print("\nCommits per repository:")
+        for repo, count in repositories.items():
+            print(repo, ":", count)
+
+        print("\nTotal contributors:", len(authors))
+
+        if authors:
+            print(
+                "Most active contributor:",
+                authors.most_common(1)[0][0]
+            )
+
+        print("Total additions:", total_additions)
+        print("Total deletions:", total_deletions)
+
     def run(self):
+
         self.scan_source_code()
         self.save_source_dataset()
         self.source_statistics()
+
+        self.mine_commit_history()
+        self.save_commit_dataset()
+        self.commit_statistics()
 
 
 def main():
