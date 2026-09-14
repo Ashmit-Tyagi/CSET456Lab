@@ -19,3 +19,126 @@ class RepositoryMiner:
         self.source_data = []
         self.commit_data = []
 
+    def get_language(self, extension):
+        languages = {
+            ".py": "Python",
+            ".js": "JavaScript",
+            ".ts": "TypeScript",
+            ".java": "Java",
+            ".cpp": "C++",
+            ".c": "C",
+            ".h": "C/C++ Header",
+            ".hpp": "C++ Header",
+            ".go": "Go",
+            ".rs": "Rust",
+            ".rb": "Ruby",
+            ".php": "PHP",
+            ".html": "HTML",
+            ".css": "CSS",
+            ".sh": "Shell"
+        }
+
+        return languages.get(extension.lower())
+
+    def count_loc(self, file_path):
+        try:
+            with open(file_path, "r", encoding="utf-8") as file:
+                return sum(1 for line in file if line.strip())
+        except (UnicodeDecodeError, PermissionError):
+            return 0
+
+    def scan_source_code(self):
+        print("\n===== SOURCE CODE MINING =====")
+
+        for repo_name, repo_path in self.repositories.items():
+
+            print(f"Analyzing: {repo_name}")
+
+            for root, dirs, files in os.walk(repo_path):
+
+                if ".git" in dirs:
+                    dirs.remove(".git")
+
+                for file in files:
+
+                    extension = os.path.splitext(file)[1].lower()
+                    language = self.get_language(extension)
+
+                    if language is None:
+                        continue
+
+                    file_path = os.path.join(root, file)
+
+                    loc = self.count_loc(file_path)
+
+                    try:
+                        size = os.path.getsize(file_path)
+                    except OSError:
+                        size = 0
+
+                    relative_path = os.path.relpath(file_path, repo_path)
+
+                    self.source_data.append({
+                        "repository": repo_name,
+                        "file_path": relative_path,
+                        "language": language,
+                        "extension": extension,
+                        "loc": loc,
+                        "size_bytes": size
+                    })
+
+            print(f"Completed: {repo_name}")
+
+    def save_source_dataset(self):
+        output_file = r"C:\Users\ashmi\Desktop\Special Topics Devops\CSET456Lab\lab2\data\source_code_dataset.csv"
+
+        fields = [
+            "repository",
+            "file_path",
+            "language",
+            "extension",
+            "loc",
+            "size_bytes"
+        ]
+
+        with open(output_file, "w", newline="", encoding="utf-8") as file:
+            writer = csv.DictWriter(file, fieldnames=fields)
+
+            writer.writeheader()
+            writer.writerows(self.source_data)
+
+        print("\nSource code dataset saved to:")
+        print(output_file)
+
+    def source_statistics(self):
+        repositories = Counter()
+        languages = Counter()
+
+        for row in self.source_data:
+            repositories[row["repository"]] += 1
+            languages[row["language"]] += 1
+
+        print("\n===== SOURCE CODE STATISTICS =====")
+        print("Total source files:", len(self.source_data))
+
+        print("\nFiles per repository:")
+        for repo, count in repositories.items():
+            print(repo, ":", count)
+
+        print("\nLanguages:")
+        for language, count in languages.items():
+            print(language, ":", count)
+
+    def run(self):
+        self.scan_source_code()
+        self.save_source_dataset()
+        self.source_statistics()
+
+
+def main():
+    miner = RepositoryMiner()
+    miner.run()
+
+
+if __name__ == "__main__":
+    main()
