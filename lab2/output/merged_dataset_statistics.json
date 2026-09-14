@@ -1,0 +1,60 @@
+{
+    "total_repositories": 5,
+    "repositories": [
+        {
+            "repository": "flask",
+            "source_files": 106,
+            "total_loc": 14528,
+            "average_loc": 137.06,
+            "total_commits": 5556,
+            "contributors": 858,
+            "total_additions": 119076,
+            "total_deletions": 81542,
+            "average_files_changed": 1.67
+        },
+        {
+            "repository": "requests",
+            "source_files": 39,
+            "total_loc": 9875,
+            "average_loc": 253.21,
+            "total_commits": 6494,
+            "contributors": 790,
+            "total_additions": 161373,
+            "total_deletions": 132208,
+            "average_files_changed": 1.24
+        },
+        {
+            "repository": "pytest",
+            "source_files": 276,
+            "total_loc": 98115,
+            "average_loc": 355.49,
+            "total_commits": 17752,
+            "contributors": 1171,
+            "total_additions": 646125,
+            "total_deletions": 474278,
+            "average_files_changed": 2.46
+        },
+        {
+            "repository": "fastapi",
+            "source_files": 1155,
+            "total_loc": 98537,
+            "average_loc": 85.31,
+            "total_commits": 7713,
+            "contributors": 911,
+            "total_additions": 800953,
+            "total_deletions": 413772,
+            "average_files_changed": 4.09
+        },
+        {
+            "repository": "scikit-learn",
+            "source_files": 1092,
+            "total_loc": 386608,
+            "average_loc": 354.04,
+            "total_commits": 33997,
+            "contributors": 3528,
+            "total_additions": 3747733,
+            "total_deletions": 3170166,
+            "average_files_changed": 2.63
+        }
+    ]
+}

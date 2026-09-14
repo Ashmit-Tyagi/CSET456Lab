@@ -1,5 +1,6 @@
 import os
 import csv
+import json
 import subprocess
 from collections import Counter
 
@@ -7,6 +8,7 @@ from collections import Counter
 class RepositoryMiner:
 
     def __init__(self):
+
         self.repositories = {
             "flask": r"C:\Users\ashmi\Desktop\Special Topics Devops\flask",
             "requests": r"C:\Users\ashmi\Desktop\Special Topics Devops\requests",
@@ -24,7 +26,14 @@ class RepositoryMiner:
             r"\CSET456Lab\lab2\data"
         )
 
-    # ---------------- SOURCE CODE ----------------
+        self.output_path = (
+            r"C:\Users\ashmi\Desktop\Special Topics Devops"
+            r"\CSET456Lab\lab2\output"
+        )
+
+    # =========================================================
+    # SOURCE CODE MINING
+    # =========================================================
 
     def get_language(self, extension):
 
@@ -51,6 +60,7 @@ class RepositoryMiner:
     def count_loc(self, file_path):
 
         try:
+
             with open(
                 file_path,
                 "r",
@@ -63,6 +73,7 @@ class RepositoryMiner:
                 )
 
         except Exception:
+
             return 0
 
     def scan_source_code(self):
@@ -84,7 +95,9 @@ class RepositoryMiner:
                         file_name
                     )[1]
 
-                    language = self.get_language(extension)
+                    language = self.get_language(
+                        extension
+                    )
 
                     if language is None:
                         continue
@@ -117,6 +130,7 @@ class RepositoryMiner:
                         })
 
                     except Exception:
+
                         continue
 
             print(f"Completed: {repo_name}")
@@ -174,7 +188,10 @@ class RepositoryMiner:
         print("\nFiles per repository:")
 
         for repo, count in repo_count.items():
-            print(f"{repo} : {count}")
+
+            print(
+                f"{repo} : {count}"
+            )
 
         language_count = Counter(
             row["language"]
@@ -184,9 +201,14 @@ class RepositoryMiner:
         print("\nLanguages:")
 
         for language, count in language_count.items():
-            print(f"{language} : {count}")
 
-    # ---------------- COMMIT HISTORY ----------------
+            print(
+                f"{language} : {count}"
+            )
+
+    # =========================================================
+    # COMMIT HISTORY MINING
+    # =========================================================
 
     def mine_commit_history(self):
 
@@ -259,6 +281,7 @@ class RepositoryMiner:
                         commit_count += 1
 
                         if commit_count % 500 == 0:
+
                             print(
                                 f"  Processed "
                                 f"{commit_count} commits..."
@@ -274,10 +297,16 @@ class RepositoryMiner:
                             deleted = parts[1]
 
                             if added.isdigit():
-                                additions += int(added)
+
+                                additions += int(
+                                    added
+                                )
 
                             if deleted.isdigit():
-                                deletions += int(deleted)
+
+                                deletions += int(
+                                    deleted
+                                )
 
                             files_changed += 1
 
@@ -295,7 +324,8 @@ class RepositoryMiner:
 
                 print(
                     f"Completed commits: "
-                    f"{repo_name} ({commit_count})"
+                    f"{repo_name} "
+                    f"({commit_count})"
                 )
 
             except Exception as e:
@@ -364,7 +394,10 @@ class RepositoryMiner:
         print("\nCommits per repository:")
 
         for repo, count in repo_count.items():
-            print(f"{repo} : {count}")
+
+            print(
+                f"{repo} : {count}"
+            )
 
         contributors = set(
             row["author"]
@@ -397,11 +430,15 @@ class RepositoryMiner:
             f"{total_deletions}"
         )
 
-    # ---------------- DATA CLEANING ----------------
+    # =========================================================
+    # DATA CLEANING
+    # =========================================================
 
     def clean_datasets(self):
 
         print("\n===== DATA CLEANING =====")
+
+        # Clean source code dataset
 
         cleaned_source = []
         seen_files = set()
@@ -426,6 +463,8 @@ class RepositoryMiner:
                 seen_files.add(key)
 
         self.source_data = cleaned_source
+
+        # Clean commit history dataset
 
         cleaned_commits = []
         seen_commits = set()
@@ -459,6 +498,8 @@ class RepositoryMiner:
 
     def save_cleaned_datasets(self):
 
+        # Clean source dataset
+
         source_path = os.path.join(
             self.data_path,
             "cleaned_source_code_dataset.csv"
@@ -489,6 +530,8 @@ class RepositoryMiner:
             writer.writerows(
                 self.source_data
             )
+
+        # Clean commit dataset
 
         commit_path = os.path.join(
             self.data_path,
@@ -523,19 +566,24 @@ class RepositoryMiner:
             )
 
         print("\nCleaned datasets saved:")
+
         print(source_path)
         print(commit_path)
 
-    # ---------------- MERGED DATASET ----------------
+    # =========================================================
+    # MERGED DATASET
+    # =========================================================
 
     def create_merged_dataset(self):
 
-        print("\n===== CREATING MERGED DATASET =====")
+        print(
+            "\n===== CREATING MERGED DATASET ====="
+        )
 
         source_summary = {}
         commit_summary = {}
 
-        # Aggregate source code data
+        # Aggregate source code information
 
         for row in self.source_data:
 
@@ -554,7 +602,7 @@ class RepositoryMiner:
                 row["loc"]
             )
 
-        # Aggregate commit data
+        # Aggregate commit information
 
         for row in self.commit_data:
 
@@ -588,7 +636,7 @@ class RepositoryMiner:
                 row["files_changed"]
             )
 
-        # Merge both datasets
+        # Combine both datasets
 
         for repo in self.repositories:
 
@@ -613,41 +661,58 @@ class RepositoryMiner:
 
             source_files = source["source_files"]
             total_loc = source["total_loc"]
+
             total_commits = commits["total_commits"]
 
             if source_files > 0:
+
                 average_loc = round(
                     total_loc / source_files,
                     2
                 )
+
             else:
+
                 average_loc = 0
 
             if total_commits > 0:
+
                 average_files_changed = round(
                     commits["total_files_changed"]
                     / total_commits,
                     2
                 )
+
             else:
+
                 average_files_changed = 0
 
             self.merged_data.append({
+
                 "repository": repo,
+
                 "source_files": source_files,
+
                 "total_loc": total_loc,
+
                 "average_loc": average_loc,
+
                 "total_commits": total_commits,
+
                 "contributors": len(
                     commits["contributors"]
                 ),
+
                 "total_additions": commits[
                     "total_additions"
                 ],
+
                 "total_deletions": commits[
                     "total_deletions"
                 ],
-                "average_files_changed": average_files_changed
+
+                "average_files_changed":
+                    average_files_changed
             })
 
         print(
@@ -754,24 +819,175 @@ class RepositoryMiner:
                 f"{row['average_files_changed']}"
             )
 
-    # ---------------- RUN ----------------
+    # =========================================================
+    # SAVE THREE STATISTICS FILES
+    # =========================================================
+
+    def save_statistics(self):
+
+        os.makedirs(
+            self.output_path,
+            exist_ok=True
+        )
+
+        # ---------------- SOURCE STATISTICS ----------------
+
+        source_stats = {
+
+            "total_source_files":
+                len(self.source_data),
+
+            "files_per_repository":
+                dict(
+                    Counter(
+                        row["repository"]
+                        for row in self.source_data
+                    )
+                ),
+
+            "languages":
+                dict(
+                    Counter(
+                        row["language"]
+                        for row in self.source_data
+                    )
+                )
+        }
+
+        source_path = os.path.join(
+            self.output_path,
+            "source_code_statistics.json"
+        )
+
+        with open(
+            source_path,
+            "w",
+            encoding="utf-8"
+        ) as file:
+
+            json.dump(
+                source_stats,
+                file,
+                indent=4
+            )
+
+        # ---------------- COMMIT STATISTICS ----------------
+
+        contributors = set(
+            row["author"]
+            for row in self.commit_data
+            if row["author"]
+        )
+
+        commit_stats = {
+
+            "total_commits":
+                len(self.commit_data),
+
+            "commits_per_repository":
+                dict(
+                    Counter(
+                        row["repository"]
+                        for row in self.commit_data
+                    )
+                ),
+
+            "total_contributors":
+                len(contributors),
+
+            "total_additions":
+                sum(
+                    int(row["additions"])
+                    for row in self.commit_data
+                ),
+
+            "total_deletions":
+                sum(
+                    int(row["deletions"])
+                    for row in self.commit_data
+                )
+        }
+
+        commit_path = os.path.join(
+            self.output_path,
+            "commit_history_statistics.json"
+        )
+
+        with open(
+            commit_path,
+            "w",
+            encoding="utf-8"
+        ) as file:
+
+            json.dump(
+                commit_stats,
+                file,
+                indent=4
+            )
+
+        # ---------------- MERGED STATISTICS ----------------
+
+        merged_stats = {
+
+            "total_repositories":
+                len(self.merged_data),
+
+            "repositories":
+                self.merged_data
+        }
+
+        merged_path = os.path.join(
+            self.output_path,
+            "merged_dataset_statistics.json"
+        )
+
+        with open(
+            merged_path,
+            "w",
+            encoding="utf-8"
+        ) as file:
+
+            json.dump(
+                merged_stats,
+                file,
+                indent=4
+            )
+
+        print(
+            "\n===== STATISTICS FILES CREATED ====="
+        )
+
+        print(source_path)
+        print(commit_path)
+        print(merged_path)
+
+    # =========================================================
+    # RUN EVERYTHING
+    # =========================================================
 
     def run(self):
 
+        # Source code dataset
         self.scan_source_code()
         self.save_source_dataset()
         self.source_statistics()
 
+        # Commit history dataset
         self.mine_commit_history()
         self.save_commit_dataset()
         self.commit_statistics()
 
+        # Clean datasets
         self.clean_datasets()
         self.save_cleaned_datasets()
 
+        # Merge datasets
         self.create_merged_dataset()
         self.save_merged_dataset()
         self.merged_statistics()
+
+        # Statistics files
+        self.save_statistics()
 
 
 def main():

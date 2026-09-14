@@ -1,0 +1,13 @@
+{
+    "total_commits": 71512,
+    "commits_per_repository": {
+        "flask": 5556,
+        "requests": 6494,
+        "pytest": 17752,
+        "fastapi": 7713,
+        "scikit-learn": 33997
+    },
+    "total_contributors": 6948,
+    "total_additions": 5475260,
+    "total_deletions": 4271966
+}
