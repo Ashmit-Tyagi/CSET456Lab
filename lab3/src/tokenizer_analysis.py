@@ -1,6 +1,10 @@
 import os
 import csv
 import re
+from tokenizers import Tokenizer
+from tokenizers.models import BPE
+from tokenizers.trainers import BpeTrainer
+from tokenizers.pre_tokenizers import Whitespace
 
 # CSET456Lab folder
 BASE_DIR = os.path.abspath(
@@ -106,13 +110,39 @@ def word_tokenizer(source_files):
 
     return vocab_size, average_sequence_length
 
+def subword_tokenizer(source_files):
+    tokenizer = Tokenizer(BPE(unk_token="[UNK]"))
+    tokenizer.pre_tokenizer = Whitespace()
+
+    trainer = BpeTrainer(
+        vocab_size=5000,
+        special_tokens=["[UNK]"]
+    )
+
+    corpus = [file["code"] for file in source_files]
+
+    tokenizer.train_from_iterator(corpus, trainer=trainer)
+
+    all_tokens = []
+    sequence_lengths = []
+
+    for code in corpus:
+        tokens = tokenizer.encode(code).tokens
+
+        all_tokens.extend(tokens)
+        sequence_lengths.append(len(tokens))
+
+    vocab_size = tokenizer.get_vocab_size()
+    average_sequence_length = sum(sequence_lengths) / len(sequence_lengths)
+
+    return tokenizer, all_tokens, vocab_size, average_sequence_length
+
 
 def embedding_matrix_size(vocab_size):
     return vocab_size * EMBEDDING_DIMENSION
 
 
 def main():
-    # Load source code
     source_files = load_source_files()
 
     print("Total source files loaded:", len(source_files))
@@ -125,7 +155,11 @@ def main():
     word_vocab, word_avg_length = word_tokenizer(source_files)
     word_embedding = embedding_matrix_size(word_vocab)
 
-    # Display results
+    # Subword tokenizer
+    subword_tokenizer_obj, subword_tokens, subword_vocab, subword_avg_length = subword_tokenizer(source_files)
+    subword_embedding = embedding_matrix_size(subword_vocab)
+
+    # Character results
     print("\nCharacter Tokenizer")
     print("-------------------")
     print("Vocabulary size:", char_vocab)
@@ -139,6 +173,7 @@ def main():
         char_embedding
     )
 
+    # Word results
     print("\nWord Tokenizer")
     print("----------------")
     print("Vocabulary size:", word_vocab)
@@ -152,12 +187,24 @@ def main():
         word_embedding
     )
 
+    # Subword results
+    print("\nSubword Tokenizer (BPE)")
+    print("-----------------------")
+    print("Vocabulary size:", subword_vocab)
+    print("Average sequence length:", round(subword_avg_length, 2))
+    print(
+        "Embedding matrix size:",
+        subword_vocab,
+        "x",
+        EMBEDDING_DIMENSION,
+        "=",
+        subword_embedding
+    )
+
     # Comparison
     print("\nTokenizer Comparison")
     print("--------------------")
-    print(
-        "Tokenizer\tVocabulary\tAverage Sequence\tEmbedding Matrix"
-    )
+    print("Tokenizer\tVocabulary\tAverage Sequence\tEmbedding Matrix")
 
     print(
         "Character\t",
@@ -175,6 +222,15 @@ def main():
         round(word_avg_length, 2),
         "\t\t",
         word_embedding
+    )
+
+    print(
+        "Subword\t\t",
+        subword_vocab,
+        "\t\t",
+        round(subword_avg_length, 2),
+        "\t\t",
+        subword_embedding
     )
 
 
