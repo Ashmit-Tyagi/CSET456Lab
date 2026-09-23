@@ -1,0 +1,19 @@
+{
+    "related_pairs": [
+        {
+            "token1": "def",
+            "token2": "self",
+            "similarity": 0.7224520069739445
+        },
+        {
+            "token1": "pytest",
+            "token2": "assert",
+            "similarity": 0.73798820784801
+        },
+        {
+            "token1": "import",
+            "token2": "from",
+            "similarity": 0.7376004206916817
+        }
+    ]
+}

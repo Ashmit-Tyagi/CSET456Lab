@@ -1,0 +1,41 @@
+{
+    "algorithm": "Move related token embeddings slightly toward their midpoint",
+    "learning_rate": 0.1,
+    "related_pairs": [
+        [
+            "def",
+            "self"
+        ],
+        [
+            "pytest",
+            "assert"
+        ],
+        [
+            "import",
+            "from"
+        ]
+    ],
+    "comparison": [
+        {
+            "token1": "def",
+            "token2": "self",
+            "before_similarity": 0.7225,
+            "after_similarity": 0.7692,
+            "change": 0.0467
+        },
+        {
+            "token1": "pytest",
+            "token2": "assert",
+            "before_similarity": 0.738,
+            "after_similarity": 0.7824,
+            "change": 0.0444
+        },
+        {
+            "token1": "import",
+            "token2": "from",
+            "before_similarity": 0.7376,
+            "after_similarity": 0.7821,
+            "change": 0.0445
+        }
+    ]
+}

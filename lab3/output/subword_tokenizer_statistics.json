@@ -1,0 +1,8 @@
+{
+    "tokenizer": "Subword (BPE)",
+    "vocabulary_size": 5000,
+    "average_sequence_length": 2068.06,
+    "embedding_dimension": 128,
+    "embedding_matrix": "5000 x 128",
+    "embedding_matrix_size": 640000
+}

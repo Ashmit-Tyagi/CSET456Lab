@@ -1,0 +1,313 @@
+{
+    "embedding_dimension": 128,
+    "embedding_matrix_shape": [
+        5000,
+        128
+    ],
+    "top_50_tokens": [
+        {
+            "token": ".",
+            "frequency": 270518
+        },
+        {
+            "token": ",",
+            "frequency": 212428
+        },
+        {
+            "token": "(",
+            "frequency": 173698
+        },
+        {
+            "token": "=",
+            "frequency": 161988
+        },
+        {
+            "token": "\"",
+            "frequency": 114364
+        },
+        {
+            "token": ")",
+            "frequency": 99952
+        },
+        {
+            "token": ":",
+            "frequency": 75359
+        },
+        {
+            "token": "0",
+            "frequency": 54323
+        },
+        {
+            "token": "\",",
+            "frequency": 50903
+        },
+        {
+            "token": "1",
+            "frequency": 50587
+        },
+        {
+            "token": "the",
+            "frequency": 49628
+        },
+        {
+            "token": "#",
+            "frequency": 48799
+        },
+        {
+            "token": "-",
+            "frequency": 47998
+        },
+        {
+            "token": "\":",
+            "frequency": 47113
+        },
+        {
+            "token": "_",
+            "frequency": 47105
+        },
+        {
+            "token": "[",
+            "frequency": 41415
+        },
+        {
+            "token": "X",
+            "frequency": 32957
+        },
+        {
+            "token": "self",
+            "frequency": 31437
+        },
+        {
+            "token": "def",
+            "frequency": 29452
+        },
+        {
+            "token": "of",
+            "frequency": 28658
+        },
+        {
+            "token": "s",
+            "frequency": 26972
+        },
+        {
+            "token": "is",
+            "frequency": 26375
+        },
+        {
+            "token": "in",
+            "frequency": 26298
+        },
+        {
+            "token": "2",
+            "frequency": 26142
+        },
+        {
+            "token": "):",
+            "frequency": 24950
+        },
+        {
+            "token": "to",
+            "frequency": 24255
+        },
+        {
+            "token": "None",
+            "frequency": 24230
+        },
+        {
+            "token": "a",
+            "frequency": 24113
+        },
+        {
+            "token": "`",
+            "frequency": 23499
+        },
+        {
+            "token": "np",
+            "frequency": 22077
+        },
+        {
+            "token": "{",
+            "frequency": 21883
+        },
+        {
+            "token": "assert",
+            "frequency": 21456
+        },
+        {
+            "token": "if",
+            "frequency": 20941
+        },
+        {
+            "token": "for",
+            "frequency": 20850
+        },
+        {
+            "token": "y",
+            "frequency": 20746
+        },
+        {
+            "token": "import",
+            "frequency": 20535
+        },
+        {
+            "token": "]",
+            "frequency": 20043
+        },
+        {
+            "token": "==",
+            "frequency": 19560
+        },
+        {
+            "token": "/",
+            "frequency": 18951
+        },
+        {
+            "token": "\"\"\"",
+            "frequency": 18337
+        },
+        {
+            "token": "(\"",
+            "frequency": 17665
+        },
+        {
+            "token": "()",
+            "frequency": 17418
+        },
+        {
+            "token": "from",
+            "frequency": 17254
+        },
+        {
+            "token": "and",
+            "frequency": 16464
+        },
+        {
+            "token": "],",
+            "frequency": 16302
+        },
+        {
+            "token": "pytest",
+            "frequency": 15372
+        },
+        {
+            "token": "\")",
+            "frequency": 14956
+        },
+        {
+            "token": "'",
+            "frequency": 14936
+        },
+        {
+            "token": "test_",
+            "frequency": 14879
+        },
+        {
+            "token": "3",
+            "frequency": 14842
+        }
+    ],
+    "top_10_most_similar": [
+        {
+            "token1": ")",
+            "token2": "None",
+            "similarity": 0.8251
+        },
+        {
+            "token1": "to",
+            "token2": "None",
+            "similarity": 0.8203
+        },
+        {
+            "token1": "None",
+            "token2": "for",
+            "similarity": 0.8163
+        },
+        {
+            "token1": "#",
+            "token2": "(\"",
+            "similarity": 0.812
+        },
+        {
+            "token1": "a",
+            "token2": "y",
+            "similarity": 0.8098
+        },
+        {
+            "token1": "the",
+            "token2": "s",
+            "similarity": 0.8092
+        },
+        {
+            "token1": "(",
+            "token2": "to",
+            "similarity": 0.809
+        },
+        {
+            "token1": "self",
+            "token2": "to",
+            "similarity": 0.809
+        },
+        {
+            "token1": "(",
+            "token2": "=",
+            "similarity": 0.8075
+        },
+        {
+            "token1": ":",
+            "token2": "test_",
+            "similarity": 0.8073
+        }
+    ],
+    "top_10_least_similar": [
+        {
+            "token1": "],",
+            "token2": "\")",
+            "similarity": 0.6597
+        },
+        {
+            "token1": "\",",
+            "token2": "is",
+            "similarity": 0.6663
+        },
+        {
+            "token1": ".",
+            "token2": "pytest",
+            "similarity": 0.6742
+        },
+        {
+            "token1": "X",
+            "token2": "]",
+            "similarity": 0.6772
+        },
+        {
+            "token1": "2",
+            "token2": "/",
+            "similarity": 0.6845
+        },
+        {
+            "token1": "(",
+            "token2": "{",
+            "similarity": 0.6847
+        },
+        {
+            "token1": "_",
+            "token2": "np",
+            "similarity": 0.6856
+        },
+        {
+            "token1": "def",
+            "token2": "from",
+            "similarity": 0.686
+        },
+        {
+            "token1": "-",
+            "token2": "\":",
+            "similarity": 0.6866
+        },
+        {
+            "token1": "{",
+            "token2": "],",
+            "similarity": 0.6878
+        }
+    ]
+}

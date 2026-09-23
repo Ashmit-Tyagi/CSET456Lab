@@ -1,0 +1,8 @@
+{
+    "tokenizer": "Character",
+    "vocabulary_size": 299,
+    "average_sequence_length": 9291.73,
+    "embedding_dimension": 128,
+    "embedding_matrix": "299 x 128",
+    "embedding_matrix_size": 38272
+}

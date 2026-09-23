@@ -1,0 +1,29 @@
+{
+    "selected_tokens": [
+        {
+            "selected_token": "def",
+            "most_similar_token": "(",
+            "similarity": 0.7918791743670801
+        },
+        {
+            "selected_token": "self",
+            "most_similar_token": "to",
+            "similarity": 0.8089547704811221
+        },
+        {
+            "selected_token": "import",
+            "most_similar_token": "if",
+            "similarity": 0.7966695024812955
+        },
+        {
+            "selected_token": "pytest",
+            "most_similar_token": "a",
+            "similarity": 0.7973641283120065
+        },
+        {
+            "selected_token": "None",
+            "most_similar_token": ")",
+            "similarity": 0.8250657587235269
+        }
+    ]
+}

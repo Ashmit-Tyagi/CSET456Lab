@@ -1,0 +1,8 @@
+{
+    "tokenizer": "Word",
+    "vocabulary_size": 67194,
+    "average_sequence_length": 1910.28,
+    "embedding_dimension": 128,
+    "embedding_matrix": "67194 x 128",
+    "embedding_matrix_size": 8600832
+}
