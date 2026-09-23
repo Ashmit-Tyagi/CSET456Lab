@@ -55,8 +55,6 @@ The following repositories were used:
 * FastAPI
 * Scikit-learn
 
-These repositories contain Python source code along with other programming and markup files.
-
 ---
 
 ## 4. Technology Stack
@@ -423,26 +421,6 @@ These pairs were selected manually for the experiment. Their initial similarity 
 6. Calculate cosine similarity again.
 7. Compare the similarity before and after the update.
 
-The midpoint is calculated as:
-
-```text
-midpoint = (vector1 + vector2) / 2
-```
-
-The vectors are then moved toward the midpoint using a small learning rate:
-
-```text
-new_vector =
-    old_vector +
-    learning_rate × (midpoint - old_vector)
-```
-
-The learning rate used in the experiment was:
-
-```text
-0.1
-```
-
 ---
 
 # 17. Similarity After Improvement
@@ -460,8 +438,6 @@ After applying the naive algorithm, the similarities increased:
 All three selected pairs showed an increase in cosine similarity.
 
 This happens because the algorithm moves the two selected vectors toward their midpoint, reducing the difference between the vectors.
-
-The experiment therefore demonstrates how a simple embedding-update rule can increase similarity between manually selected related tokens.
 
 However, this is only a **naive demonstration**. It does not train embeddings from real semantic relationships in the source-code dataset.
 
