@@ -113,3 +113,39 @@ def get_vocabulary(tokenizer):
     tokens = list(vocabulary.keys())
 
     return tokens
+
+def select_tokens(tokens):
+    random.seed(42)
+
+    valid_tokens = [
+        token
+        for token in tokens
+        if token not in ["[UNK]"]
+    ]
+
+    selected_tokens = random.sample(
+        valid_tokens,
+        20
+    )
+
+    print("\nSelected 20 tokens:")
+
+    for token in selected_tokens:
+        print(token)
+
+    return selected_tokens
+
+def main():
+    source_files = load_source_files()
+
+    tokenizer = create_tokenizer(source_files)
+
+    tokens = get_vocabulary(tokenizer)
+
+    print("Vocabulary size:", len(tokens))
+
+    selected_tokens = select_tokens(tokens)
+
+
+if __name__ == "__main__":
+    main()
