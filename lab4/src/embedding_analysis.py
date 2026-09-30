@@ -1,12 +1,15 @@
-import json
 import os
 import random
+import json
+import ast
+
 import numpy as np
 
 from tokenizers import Tokenizer
 from tokenizers.models import BPE
 from tokenizers.pre_tokenizers import Whitespace
 from tokenizers.trainers import BpeTrainer
+from gensim.models import Word2Vec
 
 
 # --------------------------------
@@ -165,8 +168,6 @@ def select_tokens(tokens):
         if token != "[UNK]"
     ]
 
-    # Sort before sampling so selection
-    # remains reproducible
     valid_tokens.sort()
 
     selected_tokens = random.sample(
@@ -339,6 +340,208 @@ def context_embeddings(
 
     return embeddings
 
+
+# --------------------------------
+# Approach 3
+# Word2Vec Embeddings
+# --------------------------------
+
+def word2vec_embeddings(
+    source_files,
+    tokenizer,
+    selected_tokens
+):
+
+    sentences = []
+
+    print("\nPreparing data for Word2Vec...")
+
+    for file in source_files:
+
+        tokens = tokenizer.encode(
+            file["code"]
+        ).tokens
+
+        if len(tokens) > 0:
+            sentences.append(tokens)
+
+    print(
+        "Sentences prepared:",
+        len(sentences)
+    )
+
+    print("\nTraining Word2Vec...")
+
+    model = Word2Vec(
+        sentences=sentences,
+        vector_size=EMBEDDING_DIMENSION,
+        window=CONTEXT_WINDOW,
+        min_count=1,
+        workers=1,
+        seed=42,
+        epochs=5
+    )
+
+    embeddings = []
+    valid_tokens = []
+
+    for token in selected_tokens:
+
+        if token in model.wv:
+
+            embeddings.append(
+                model.wv[token]
+            )
+
+            valid_tokens.append(token)
+
+    embeddings = np.array(
+        embeddings
+    )
+
+    return valid_tokens, embeddings
+
+
+# --------------------------------
+# Approach 4
+# Simplified Code2Vec-style
+# AST Embeddings
+# --------------------------------
+
+def get_ast_node_names(code):
+
+    try:
+
+        tree = ast.parse(code)
+
+        node_names = []
+
+        for node in ast.walk(tree):
+
+            node_name = type(node).__name__
+
+            node_names.append(
+                node_name
+            )
+
+        return node_names
+
+    except Exception:
+
+        return []
+
+
+def code2vec_embeddings(
+    source_files,
+    selected_tokens
+):
+
+    print("\nPreparing data for Code2Vec-style embedding...")
+
+    # Create a list of AST node types
+    ast_types = set()
+
+    for file in source_files:
+
+        node_names = get_ast_node_names(
+            file["code"]
+        )
+
+        for node in node_names:
+
+            ast_types.add(node)
+
+    ast_types = sorted(
+        list(ast_types)
+    )
+
+    print(
+        "AST node types found:",
+        len(ast_types)
+    )
+
+    ast_index = {
+        node: index
+        for index, node in enumerate(
+            ast_types
+        )
+    }
+
+    # Each token gets an embedding based on
+    # the AST structures of files containing it.
+    embeddings = np.zeros(
+        (
+            len(selected_tokens),
+            len(ast_types)
+        )
+    )
+
+    token_index = {
+        token: index
+        for index, token in enumerate(
+            selected_tokens
+        )
+    }
+
+    print(
+        "Building Code2Vec-style embeddings..."
+    )
+
+    for file in source_files:
+
+        code = file["code"]
+
+        node_names = get_ast_node_names(
+            code
+        )
+
+        if len(node_names) == 0:
+            continue
+
+        ast_vector = np.zeros(
+            len(ast_types)
+        )
+
+        for node in node_names:
+
+            if node in ast_index:
+
+                ast_vector[
+                    ast_index[node]
+                ] += 1
+
+        try:
+
+            code_tokens = code.split()
+
+        except Exception:
+
+            continue
+
+        for selected_token in selected_tokens:
+
+            found = False
+
+            for code_token in code_tokens:
+
+                if selected_token in code_token:
+
+                    found = True
+                    break
+
+            if found:
+
+                token_id = token_index[
+                    selected_token
+                ]
+
+                embeddings[
+                    token_id
+                ] += ast_vector
+
+    return embeddings
+
+
 # --------------------------------
 # Save results
 # --------------------------------
@@ -346,7 +549,9 @@ def context_embeddings(
 def save_results(
     selected_tokens,
     random_top_5,
-    context_top_5
+    context_top_5,
+    word2vec_top_5,
+    code2vec_top_5
 ):
 
     os.makedirs(
@@ -355,20 +560,29 @@ def save_results(
     )
 
     results = {
+
         "selected_tokens": selected_tokens,
-        "random_embeddings": {
-            "embedding_dimension": EMBEDDING_DIMENSION,
+
+        "random_embedding": {
             "top_5_similar_pairs": random_top_5
         },
-        "context_embeddings": {
-            "context_window": CONTEXT_WINDOW,
+
+        "context_embedding": {
             "top_5_similar_pairs": context_top_5
+        },
+
+        "word2vec": {
+            "top_5_similar_pairs": word2vec_top_5
+        },
+
+        "code2vec_style": {
+            "top_5_similar_pairs": code2vec_top_5
         }
     }
 
     output_path = os.path.join(
         OUTPUT_DIR,
-        "custom_embedding_results.json"
+        "embedding_results.json"
     )
 
     with open(
@@ -388,21 +602,31 @@ def save_results(
         output_path
     )
 
+
 # --------------------------------
 # Main
 # --------------------------------
 
 def main():
 
+    # --------------------------------
     # Load source code
+    # --------------------------------
+
     source_files = load_source_files()
 
+    # --------------------------------
     # Create tokenizer
+    # --------------------------------
+
     tokenizer = create_tokenizer(
         source_files
     )
 
+    # --------------------------------
     # Get vocabulary
+    # --------------------------------
+
     tokens = get_vocabulary(
         tokenizer
     )
@@ -412,7 +636,10 @@ def main():
         len(tokens)
     )
 
+    # --------------------------------
     # Select 20 tokens
+    # --------------------------------
+
     selected_tokens = select_tokens(
         tokens
     )
@@ -492,12 +719,98 @@ def main():
                 4
             )
         )
-     # Save results
+
+    # =================================
+    # Approach 3: Word2Vec
+    # =================================
+
+    word2vec_tokens, word2vec_matrix = (
+        word2vec_embeddings(
+            source_files,
+            tokenizer,
+            selected_tokens
+        )
+    )
+
+    word2vec_similarities = (
+        calculate_pairwise_similarity(
+            word2vec_tokens,
+            word2vec_matrix
+        )
+    )
+
+    word2vec_top_5 = get_top_similar_pairs(
+        word2vec_similarities
+    )
+
+    print(
+        "\nTop 5 Similar Pairs - "
+        "Word2Vec:"
+    )
+
+    for pair in word2vec_top_5:
+
+        print(
+            pair["token1"],
+            "<->",
+            pair["token2"],
+            ":",
+            round(
+                pair["similarity"],
+                4
+            )
+        )
+
+    # =================================
+    # Approach 4: Code2Vec-style
+    # =================================
+
+    code2vec_matrix = code2vec_embeddings(
+        source_files,
+        selected_tokens
+    )
+
+    code2vec_similarities = (
+        calculate_pairwise_similarity(
+            selected_tokens,
+            code2vec_matrix
+        )
+    )
+
+    code2vec_top_5 = get_top_similar_pairs(
+        code2vec_similarities
+    )
+
+    print(
+        "\nTop 5 Similar Pairs - "
+        "Code2Vec-style:"
+    )
+
+    for pair in code2vec_top_5:
+
+        print(
+            pair["token1"],
+            "<->",
+            pair["token2"],
+            ":",
+            round(
+                pair["similarity"],
+                4
+            )
+        )
+
+    # --------------------------------
+    # Save all results
+    # --------------------------------
+
     save_results(
         selected_tokens,
         random_top_5,
-        context_top_5
+        context_top_5,
+        word2vec_top_5,
+        code2vec_top_5
     )
+
 
 # --------------------------------
 # Program entry point
