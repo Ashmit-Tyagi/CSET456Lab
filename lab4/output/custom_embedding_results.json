@@ -1,0 +1,84 @@
+{
+    "selected_tokens": [
+        "Sequ",
+        "23",
+        "doctest",
+        "contour",
+        "ces",
+        "_compat",
+        "Python",
+        "type",
+        "Message",
+        "\u0107",
+        "nu",
+        ":\",",
+        "70",
+        "Number",
+        "caplog",
+        "cmap",
+        "similar",
+        "\u2514",
+        "32",
+        "ve_"
+    ],
+    "random_embeddings": {
+        "embedding_dimension": 128,
+        "top_5_similar_pairs": [
+            {
+                "token1": ":\",",
+                "token2": "ve_",
+                "similarity": 0.8105877919433584
+            },
+            {
+                "token1": "Message",
+                "token2": "\u2514",
+                "similarity": 0.797199948807637
+            },
+            {
+                "token1": "contour",
+                "token2": "Message",
+                "similarity": 0.7960868689606201
+            },
+            {
+                "token1": "doctest",
+                "token2": "32",
+                "similarity": 0.7952612432592473
+            },
+            {
+                "token1": "type",
+                "token2": "70",
+                "similarity": 0.7928965470256664
+            }
+        ]
+    },
+    "context_embeddings": {
+        "context_window": 2,
+        "top_5_similar_pairs": [
+            {
+                "token1": "nu",
+                "token2": "ve_",
+                "similarity": 0.9674918326229527
+            },
+            {
+                "token1": "23",
+                "token2": "70",
+                "similarity": 0.9130087106158283
+            },
+            {
+                "token1": "contour",
+                "token2": "70",
+                "similarity": 0.8
+            },
+            {
+                "token1": "23",
+                "token2": "contour",
+                "similarity": 0.7770286898858113
+            },
+            {
+                "token1": "70",
+                "token2": "32",
+                "similarity": 0.7602631123499285
+            }
+        ]
+    }
+}
