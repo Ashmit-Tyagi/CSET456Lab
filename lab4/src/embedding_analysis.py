@@ -135,6 +135,60 @@ def select_tokens(tokens):
 
     return selected_tokens
 
+EMBEDDING_DIMENSION = 128
+
+
+def random_embeddings(tokens):
+    np.random.seed(42)
+
+    embeddings = np.random.rand(
+        len(tokens),
+        EMBEDDING_DIMENSION
+    )
+
+    return embeddings 
+
+def cosine_similarity(vector_a, vector_b):
+    numerator = np.dot(vector_a, vector_b)
+
+    denominator = (
+        np.linalg.norm(vector_a)
+        * np.linalg.norm(vector_b)
+    )
+
+    if denominator == 0:
+        return 0
+
+    return numerator / denominator
+
+def calculate_pairwise_similarity(tokens, embeddings):
+    similarities = []
+
+    for i in range(len(tokens)):
+        for j in range(i + 1, len(tokens)):
+
+            similarity = cosine_similarity(
+                embeddings[i],
+                embeddings[j]
+            )
+
+            similarities.append({
+                "token1": tokens[i],
+                "token2": tokens[j],
+                "similarity": float(similarity)
+            })
+
+    return similarities
+
+
+def get_top_similar_pairs(similarities):
+    similarities.sort(
+        key=lambda x: x["similarity"],
+        reverse=True
+    )
+
+    return similarities[:5]
+
 def main():
     source_files = load_source_files()
 
@@ -146,6 +200,26 @@ def main():
 
     selected_tokens = select_tokens(tokens)
 
+    # Approach 1: Random Embeddings
+    embeddings = random_embeddings(selected_tokens)
+
+    similarities = calculate_pairwise_similarity(
+        selected_tokens,
+        embeddings
+    )
+
+    top_5 = get_top_similar_pairs(similarities)
+
+    print("\nTop 5 Similar Pairs - Random Embeddings:")
+
+    for pair in top_5:
+        print(
+            pair["token1"],
+            "<->",
+            pair["token2"],
+            ":",
+            round(pair["similarity"], 4)
+        )
 
 if __name__ == "__main__":
     main()
